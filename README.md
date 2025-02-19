@@ -7,7 +7,8 @@ Original source: [Lewis et al](https://cdmaps.polisci.ucla.edu/)
 
 ## Data
 
-It is downloaded when you run the script, from the original source.
+It is downloaded when you run the script, from the original source. We make one change other than unclipping, which is to fix RI-01 in the 28th-42nd
+congresses, which is overlaps MA for some reason.
 
 ## Unclipping technique
 
