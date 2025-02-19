@@ -10,7 +10,11 @@ Original source: [Lewis et al](https://cdmaps.polisci.ucla.edu/)
 It is downloaded when you run the script, from the original source. We make the following changes other than unclipping:
 
     - RI-01 in the 28th-42nd congresses, which is overlaps MA for some reason.
-    - NY-15 and NY-16 in the 53rd-57th congresses, which overlap each other. We allocate the overlap, Roosevelt Island, to NY-15.
+    - Similarly, GA-09 overlaps SC in the 89th-92nd congresses.
+    - NY-15 and NY-16 in the 53rd-57th congresses, which overlap each other. We allocate the overlap, Roosevelt Island, to NY-15, 
+        arbitrarily (it doesn't really matter, as it's a small island).
+    - TN-06 and TN-07 both contain Memphis in the 95th-97th congresses. We allocate the overlap to TN-06, because,
+        according to the wikipedia, `In 1972, he entered the GOP primary for the newly reconfigured 6th Congressional District.[2] The district had been significantly redrawn by the state legislature, which shifted several Republican-trending portions near Memphis into the Sixth and removed several solidly Democratic areas.[citation needed]` (https://en.wikipedia.org/wiki/Robin_Beard)[link]. Not the most reliable source, but it's the best I was willing to pull.
 
 ## Unclipping technique
 

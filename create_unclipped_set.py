@@ -25,67 +25,62 @@ def load_shapefile(count):
     file = gpd.read_file(f"districtShapes/districts{count:03d}.shp")
     shutil.rmtree("districtShapes")
 
-    fix_ri_1(file)
-    fix_ny_1516(file)
+    clip_district_to_state(file, "Rhode Island", "1", "28", "42")
+    clip_district_to_state(file, "Georgia", "9", "89", "92")
+    fix_overlap(file, "New York", "15", "16", "53", "57")
+    fix_overlap(file, "Tennessee", "6", "7", "95", "97")
     return file
 
 
-def fix_ri_1(df):
-    """
-    Fix the geometry of Rhode Island's 1st district (28th-42nd), which
-    isn't contained to RI for some reason.
-
-    This is a hack, but it's a hack that works.
-    """
+def clip_district_to_state(df, state_title, district, start, end):
     directory = os.path.dirname(os.path.abspath(__file__))
-    ri_1 = df[
-        (df.STATENAME == "Rhode Island")
-        & (df.DISTRICT == "1")
-        & (df.STARTCONG == "28")
-        & (df.ENDCONG == "42")
+    dist_table = df[
+        (df.STATENAME == state_title)
+        & (df.DISTRICT == district)
+        & (df.STARTCONG == start)
+        & (df.ENDCONG == end)
     ]
-    if ri_1.shape[0] == 0:
+    if dist_table.shape[0] == 0:
         return
-    assert ri_1.shape[0] == 1
-    [idx] = ri_1.index
-    ri_1_geo = df.loc[idx].geometry
-    rhode_island = (
-        gpd.read_file(f"{directory}/rhode-island/rhode_island.shp").iloc[0].geometry
+    assert dist_table.shape[0] == 1
+    [idx] = dist_table.index
+    dist_geo = df.loc[idx].geometry
+    state = (
+        gpd.read_file(f"{directory}/{state_title}/{state_title}.shp").iloc[0].geometry
     )
-    ri_1_geo_proper = ri_1_geo.intersection(rhode_island)
-    assert ri_1_geo_proper.area > 0.90 * ri_1_geo.area
-    assert ri_1_geo_proper.area < ri_1_geo.area
-    df.loc[idx, "geometry"] = ri_1_geo_proper
+    dist_geo_proper = dist_geo.intersection(state)
+    assert dist_geo_proper.area > 0.90 * dist_geo.area
+    assert dist_geo_proper.area < dist_geo.area
+    df.loc[idx, "geometry"] = dist_geo_proper
 
 
-def fix_ny_1516(df):
+def fix_overlap(df, state, district_1, district_2, start_cong, end_cong):
     """
-    Fix the overlap between NY-15 and NY-16 in the 53rd-57th congresses.
-
-    We just allocate this overlap to NY-15.
+    Fix the overlap between two districts in the same state. Allocates to
+    the first district
     """
-    ny_15 = df[
-        (df.STATENAME == "New York")
-        & (df.DISTRICT == "15")
-        & (df.STARTCONG == "53")
-        & (df.ENDCONG == "57")
+    dist_table_1 = df[
+        (df.STATENAME == state)
+        & (df.DISTRICT == district_1)
+        & (df.STARTCONG == start_cong)
+        & (df.ENDCONG == end_cong)
     ]
-    ny_16 = df[
-        (df.STATENAME == "New York")
-        & (df.DISTRICT == "16")
-        & (df.STARTCONG == "53")
-        & (df.ENDCONG == "57")
+    dist_table_2 = df[
+        (df.STATENAME == state)
+        & (df.DISTRICT == district_2)
+        & (df.STARTCONG == start_cong)
+        & (df.ENDCONG == end_cong)
     ]
-    if ny_15.shape[0] == 0 or ny_16.shape[0] == 0:
+    if dist_table_1.shape[0] == 0 or dist_table_2.shape[0] == 0:
         return
-    assert ny_15.shape[0] == 1
-    assert ny_16.shape[0] == 1
-    [idx_15] = ny_15.index
-    [idx_16] = ny_16.index
-    ny_15_geo = df.loc[idx_15].geometry
-    ny_16_geo = df.loc[idx_16].geometry
-    overlap = ny_15_geo.intersection(ny_16_geo)
-    df.loc[idx_15, "geometry"] = ny_16_geo.difference(overlap)
+    assert dist_table_1.shape[0] == 1
+    assert dist_table_2.shape[0] == 1
+    [idx_1] = dist_table_1.index
+    [idx_2] = dist_table_2.index
+    geo_1 = df.loc[idx_1].geometry
+    geo_2 = df.loc[idx_2].geometry
+    overlap = geo_1.intersection(geo_2)
+    df.loc[idx_2, "geometry"] = geo_2.difference(overlap)
 
 
 @permacache("historical-congressional-unclipped/create_unclipped_set/land_shapefile_2")
@@ -154,7 +149,12 @@ def buffer_geometry(data, idx, buffer):
         if buffered_geom.intersection(data.geometry[idx_other]).area > 0:
             idxs.append(idx_other)
     for idx_other in idxs:
-        buffered_geom = buffered_geom.difference(data.geometry[idx_other])
+        try:
+            buffered_geom = buffered_geom.difference(data.geometry[idx_other])
+        except shapely.errors.GEOSException:
+            buffered_geom = buffered_geom.buffer(0)
+            buffered_geom = buffered_geom.difference(data.geometry[idx_other])
+
     return buffered_geom.buffer(0)
 
 
