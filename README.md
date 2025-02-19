@@ -7,8 +7,10 @@ Original source: [Lewis et al](https://cdmaps.polisci.ucla.edu/)
 
 ## Data
 
-It is downloaded when you run the script, from the original source. We make one change other than unclipping, which is to fix RI-01 in the 28th-42nd
-congresses, which is overlaps MA for some reason.
+It is downloaded when you run the script, from the original source. We make the following changes other than unclipping:
+
+    - RI-01 in the 28th-42nd congresses, which is overlaps MA for some reason.
+    - NY-15 and NY-16 in the 53rd-57th congresses, which overlap each other. We allocate the overlap, Roosevelt Island, to NY-15.
 
 ## Unclipping technique
 

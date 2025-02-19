@@ -26,6 +26,7 @@ def load_shapefile(count):
     shutil.rmtree("districtShapes")
 
     fix_ri_1(file)
+    fix_ny_1516(file)
     return file
 
 
@@ -55,6 +56,36 @@ def fix_ri_1(df):
     assert ri_1_geo_proper.area > 0.90 * ri_1_geo.area
     assert ri_1_geo_proper.area < ri_1_geo.area
     df.loc[idx, "geometry"] = ri_1_geo_proper
+
+
+def fix_ny_1516(df):
+    """
+    Fix the overlap between NY-15 and NY-16 in the 53rd-57th congresses.
+
+    We just allocate this overlap to NY-15.
+    """
+    ny_15 = df[
+        (df.STATENAME == "New York")
+        & (df.DISTRICT == "15")
+        & (df.STARTCONG == "53")
+        & (df.ENDCONG == "57")
+    ]
+    ny_16 = df[
+        (df.STATENAME == "New York")
+        & (df.DISTRICT == "16")
+        & (df.STARTCONG == "53")
+        & (df.ENDCONG == "57")
+    ]
+    if ny_15.shape[0] == 0 or ny_16.shape[0] == 0:
+        return
+    assert ny_15.shape[0] == 1
+    assert ny_16.shape[0] == 1
+    [idx_15] = ny_15.index
+    [idx_16] = ny_16.index
+    ny_15_geo = df.loc[idx_15].geometry
+    ny_16_geo = df.loc[idx_16].geometry
+    overlap = ny_15_geo.intersection(ny_16_geo)
+    df.loc[idx_15, "geometry"] = ny_16_geo.difference(overlap)
 
 
 @permacache("historical-congressional-unclipped/create_unclipped_set/land_shapefile_2")
