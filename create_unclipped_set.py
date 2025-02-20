@@ -199,7 +199,9 @@ def buffer_all(data, buffer, unmanipulated_indices):
         buffered_geo = buffer_geometry(data, idx, buffer)
         assert buffered_geo is not None
         assert buffered_geo.is_valid
-        assert buffered_geo.area >= 0.999 * data.iloc[idx].geometry.area, (
+        # allow a little bit of a buffer to be lost to handle e.g.,
+        # slightly incorrect boundaries that overlap in slivers.
+        assert buffered_geo.area >= 0.99 * data.iloc[idx].geometry.area, (
             f"Buffered area is smaller than original area for {data.iloc[idx].STATENAME} {data.iloc[idx].DISTRICT}"
             f" {buffered_geo.area} < {data.iloc[idx].geometry.area}"
         )
@@ -210,7 +212,7 @@ def buffer_all(data, buffer, unmanipulated_indices):
 
 
 @permacache(
-    "historical-congressional-unclipped/create_unclipped_set/unclipped_congress_3"
+    "historical-congressional-unclipped/create_unclipped_set/unclipped_congress_4"
 )
 def unclipped_congress(number):
     data = load_shapefile(number)
